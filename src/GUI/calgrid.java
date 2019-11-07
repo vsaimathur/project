@@ -109,6 +109,9 @@ public class calgrid implements ActionListener
 			op=1;
 			t.setText("");
 		}
+		JButton somebutton=(JButton) ae.getSource();
+		b0.setName("Good");
+		System.out.println(somebutton.getName());
 		if(ae.getSource() == s)
 		{
 			b=Double.parseDouble(t.getText());

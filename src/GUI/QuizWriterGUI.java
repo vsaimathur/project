@@ -21,6 +21,7 @@ import javax.swing.filechooser.FileSystemView;
  *
  */
 public class QuizWriterGUI implements ActionListener {
+	JPanel	questionpanel;
 	JFrame quizwrite,settingup;
 	int timeremaining=10800;
 	JButton button1=new JButton("open"),button2=new JButton("open"),markforreview=new JButton("Mark for review and next"),next=new JButton("Next"),prev= new JButton("Previous");
@@ -42,8 +43,6 @@ public class QuizWriterGUI implements ActionListener {
         // response on buttons 
         button1.addActionListener(this); 
         button2.addActionListener(this);
-        
-		setup.setLayout(new BoxLayout(setup,BoxLayout.Y_AXIS));
 		examname.add(new JLabel("Name of the exam: "));
 		examname.add(exam);
 		examtime.add(new JLabel("Exam Time(in min):"));
@@ -64,11 +63,12 @@ public class QuizWriterGUI implements ActionListener {
 		settingup.add(setup);
 		settingup.setVisible(true);
 		setup.setPreferredSize(new Dimension(1000,1000));
+		setup.setLayout(new BoxLayout(setup,BoxLayout.Y_AXIS));
 	}
 	//Exam is exam name
 	public void quizwriter(String examname,String username) {
 		quizwrite=new JFrame();
-		JPanel	questionpanel=new JPanel(new BorderLayout());
+		questionpanel=new JPanel(new BorderLayout());
 		int n=90;
 		JPanel sidepanel= new JPanel();
 		sidepanel.setLayout(new BoxLayout(sidepanel,BoxLayout.Y_AXIS));
@@ -109,13 +109,12 @@ public class QuizWriterGUI implements ActionListener {
 		//timerpan.add(timerem);
 		//quizwrite.add(examtitle,BorderLayout.NORTH);
 		//quizwrite.add(pane,BorderLayout.WEST);
-		Examtitlepanel.setLayout(new BoxLayout(Examtitlepanel,BoxLayout.Y_AXIS));
 		Examtitlepanel.add(examtitle);
 		Examtitlepanel.add(timerpan);
 		quizwrite.add(Examtitlepanel,BorderLayout.NORTH);
 		JPanel question=new JPanel();
 		question.setBackground(Color.WHITE);
-		JLabel questionq=new JLabel("Q1)Mathur is the biggest idiot in the world?True or False.");
+		JLabel questionq=new JLabel("Q1)Java is a oops language?");
 		question.setLayout(new BoxLayout(question,BoxLayout.Y_AXIS));
 		questionq.setFont (examn.getFont().deriveFont (26.0f));
 		question.add(questionq);
@@ -140,6 +139,7 @@ public class QuizWriterGUI implements ActionListener {
 		quizwrite.add(question);
 		quizwrite.setVisible(true);
 		JPanel downpanel=new JPanel();
+		Examtitlepanel.setLayout(new BoxLayout(Examtitlepanel,BoxLayout.Y_AXIS));
 		t=new Thread() {
 			public void run() {
 				while(true) {
@@ -152,12 +152,18 @@ public class QuizWriterGUI implements ActionListener {
 					int sec=timeremaining%60;
 					timerem.setText("Time remaining:"+String.valueOf(hrs)+" : "+String.valueOf(min)+" : "+String.valueOf(sec));
 					int warningtime=timeremaining/36;
-					if(timeremaining<=300)
+					if(timeremaining>=0)
 					{
-						if(timeremaining%2==0)
+						
+						if(timeremaining%2==0) {
 							timerem.setForeground(Color.RED);
-						else
+							//questionpanel.setVisible(true);
+							}
+						else {
 							timerem.setForeground(Color.BLACK);
+							//questionpanel.setVisible(false);	
+						}
+						
 					}
 					//System.out.println(timeremaining);
 					try {
@@ -193,55 +199,31 @@ public class QuizWriterGUI implements ActionListener {
 	public void actionPerformed(ActionEvent a) {
 		if (a.getSource()==button1) {
 			JFileChooser j = new JFileChooser(FileSystemView.getFileSystemView().getHomeDirectory()); 
-			  
-            // resctrict the user to selec files of all types 
             j.setAcceptAllFileFilterUsed(false); 
-  
-            // set a title for the dialog 
             j.setDialogTitle("Select a .txt file"); 
-  
-            // only allow files of .txt extension 
             FileNameExtensionFilter restrict = new FileNameExtensionFilter("Only .txt files", "txt"); 
             j.addChoosableFileFilter(restrict); 
-  
-            // invoke the showsSaveDialog function to show the save dialog 
             int r = j.showSaveDialog(null); 
-  
-            // if the user selects a file 
             if (r == JFileChooser.APPROVE_OPTION) 
   
             { 
-                // set the label to the path of the selected file 
                 quizpap.setText(j.getSelectedFile().getAbsolutePath()); 
-            } 
-            // if the user cancelled the operation 
+            }  
             else
                 quizpap.setText("the user cancelled the operation"); 
 		}
 		else if (a.getSource()==button2) {
 			JFileChooser j = new JFileChooser(FileSystemView.getFileSystemView().getHomeDirectory()); 
-			  
-            // resctrict the user to selec files of all types 
             j.setAcceptAllFileFilterUsed(false); 
-  
-            // set a title for the dialog 
             j.setDialogTitle("Select a .csv file"); 
-  
-            // only allow files of .txt extension 
             FileNameExtensionFilter restrict = new FileNameExtensionFilter("Only .csv files", "csv"); 
             j.addChoosableFileFilter(restrict); 
-  
-            // invoke the showsSaveDialog function to show the save dialog 
             int r = j.showSaveDialog(null); 
-  
-            // if the user selects a file 
             if (r == JFileChooser.APPROVE_OPTION) 
   
             { 
-                // set the label to the path of the selected file 
                 studentdat.setText(j.getSelectedFile().getAbsolutePath()); 
             } 
-            // if the user cancelled the operation 
             else
                 studentdat.setText("the user cancelled the operation"); 
 		}
