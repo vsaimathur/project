@@ -9,6 +9,7 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridLayout;
+import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -26,7 +27,7 @@ public class QuizWriterGUI implements ActionListener {
 	int timeremaining=10800;
 	JButton button1=new JButton("open"),button2=new JButton("open"),markforreview=new JButton("Mark for review and next"),next=new JButton("Next"),prev= new JButton("Previous");
 	Thread t=null;
-	JTextField exam=new JTextField(20),time=new JTextField(20),quizpap=new JTextField(50),studentdat=new JTextField(50);
+	JTextField exam=new JTextField(20),time=new JTextField(20),quizpap=new JTextField(30),studentdat=new JTextField(30);
 	JButton submit,submitexam=new JButton("Submit"),calc=new JButton("Calculator");
 	QuizWriterGUI(){
 
@@ -36,7 +37,9 @@ public class QuizWriterGUI implements ActionListener {
 	}
 	public void setup() {
 		/*Setup GUI Part*/
-		this.settingup=new JFrame();
+		this.settingup=new JFrame("Exam Details");
+		this.settingup.setSize(562, 232);
+		this.settingup.isResizable();
 		JPanel setup=new JPanel();
         JPanel examname=new JPanel(),examtime=new JPanel(),questionfile=new JPanel(),studentpanel=new JPanel();
         // add action listener to the button to capture user 
@@ -59,24 +62,29 @@ public class QuizWriterGUI implements ActionListener {
 		setup.add(studentpanel);
 		submit=new JButton("submit");
 		submit.addActionListener(this);
+//		setup.add(submit);
 		setup.add(submit);
 		settingup.add(setup);
+		settingup.setResizable(false);
 		settingup.setVisible(true);
-		setup.setPreferredSize(new Dimension(1000,1000));
-		setup.setLayout(new BoxLayout(setup,BoxLayout.Y_AXIS));
+//		setup.setPreferredSize(new Dimension(1000,1000));
+//		setup.setLayout(new BoxLayout(setup,BoxLayout.X_AXIS));
 	}
 	//Exam is exam name
 	public void quizwriter(String examname,String username) {
+		ImageIcon icon = new ImageIcon("C:\\Users\\suhru\\OneDrive\\Desktop\\resized.png");
+		Image scaleImage = icon.getImage().getScaledInstance(60, 70,Image.SCALE_DEFAULT);
+		icon.setImage(scaleImage);
+		//icon=(ImageIcon) scaleImage;
 		quizwrite=new JFrame();
 		questionpanel=new JPanel(new BorderLayout());
 		int n=90;
 		JPanel sidepanel= new JPanel();
 		sidepanel.setLayout(new BoxLayout(sidepanel,BoxLayout.Y_AXIS));
-		questionpanel.setLayout(new GridLayout(n/3,4));
-		
-		for(int i=0;i<12;i++) {
+		questionpanel.setLayout(new GridLayout(n,4));
+		for(int i=0;i<200;i++) {
 			JButton a=new JButton(String.valueOf(i+1));
-			a.setBackground(Color.white);
+			a.setBackground(Color.white); 
 			questionpanel.add(a);
 		}
 		int hrs=timeremaining/3600;
@@ -86,9 +94,18 @@ public class QuizWriterGUI implements ActionListener {
 		timerem.setFont(timerem.getFont().deriveFont (22.0f));
 		sidepanel.add(questionpanel);
 		JScrollPane pane=new JScrollPane(questionpanel);
+		JScrollPane sidepanelpane = new JScrollPane(sidepanel);
+//		sidepanelpane.setHorizontalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+				quizwrite.add(sidepanelpane);
 		sidepanel.add(timerem);
+		JPanel studentinfopanel=new JPanel();
+		studentinfopanel.setLayout(new FlowLayout());
+		studentinfopanel.add(new JLabel(icon));
+		studentinfopanel.add(new JLabel("User: "+username));
+		sidepanel.add(studentinfopanel);
 		sidepanel.add(questionpanel);
 		sidepanel.add(submitexam);
+		sidepanel.setSize(250,1000);
 		quizwrite.add(sidepanel,BorderLayout.EAST);
 		JPanel Examtitlepanel=new JPanel();
 		JPanel examtitle=new JPanel();
@@ -111,6 +128,7 @@ public class QuizWriterGUI implements ActionListener {
 		//quizwrite.add(pane,BorderLayout.WEST);
 		Examtitlepanel.add(examtitle);
 		Examtitlepanel.add(timerpan);
+//		Examtitlepanel.add(new JLabel("Exam1"));
 		quizwrite.add(Examtitlepanel,BorderLayout.NORTH);
 		JPanel question=new JPanel();
 		question.setBackground(Color.WHITE);
@@ -150,7 +168,7 @@ public class QuizWriterGUI implements ActionListener {
 					int hrs=timeremaining/3600;
 					int min=(timeremaining%3600)/60;
 					int sec=timeremaining%60;
-					timerem.setText("Time remaining:"+String.valueOf(hrs)+" : "+String.valueOf(min)+" : "+String.valueOf(sec));
+					timerem.setText("Time remaining:"+twodigits(hrs)+" : "+twodigits(min)+" : "+twodigits(sec));
 					int warningtime=timeremaining/36;
 					if(timeremaining>=0)
 					{
@@ -195,6 +213,12 @@ public class QuizWriterGUI implements ActionListener {
 		quizwrite.setExtendedState(JFrame.MAXIMIZED_BOTH); 
 		//quizwrite.setWindowDecorationStyle(JRootPane.NONE);
 
+	}
+	public String twodigits(int i) {
+		if(i<10)
+			return "0"+i;
+		else
+			return i+"";
 	}
 	public void actionPerformed(ActionEvent a) {
 		if (a.getSource()==button1) {
