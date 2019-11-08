@@ -132,7 +132,7 @@ public class QuizWriterGUI implements ActionListener {
 		quizwrite.add(Examtitlepanel,BorderLayout.NORTH);
 		JPanel question=new JPanel();
 		question.setBackground(Color.WHITE);
-		JLabel questionq=new JLabel("Q1)Java is a oops language?");
+		JLabel questionq=new JLabel("wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww");
 		question.setLayout(new BoxLayout(question,BoxLayout.Y_AXIS));
 		questionq.setFont (examn.getFont().deriveFont (26.0f));
 		question.add(questionq);
