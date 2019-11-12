@@ -12,20 +12,34 @@ import java.awt.GridLayout;
 import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.ObjectInputStream;
+import java.util.ArrayList;
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.filechooser.FileSystemView;
+
+import Logic.Question;
 
 /**
  * @author suhru
  *
  */
 public class QuizWriterGUI implements ActionListener {
+	ArrayList <Question>list=null;
+	ArrayList <JButton>questionbuttons = new ArrayList();
+	ArrayList<Integer>responces=new ArrayList();
+	ArrayList <Boolean>visited=new ArrayList();
+	ArrayList<Boolean> reviewmark=new ArrayList();
+	String studentname,image;
+	NewJPanel question=null;
 	JPanel	questionpanel;
 	JFrame quizwrite,settingup;
+	String userdetails[]=null,examname=null;
 	int timeremaining=10800;
-	JButton button1=new JButton("open"),button2=new JButton("open"),markforreview=new JButton("Mark for review and next"),next=new JButton("Next"),prev= new JButton("Previous");
+	int index=0;
+	JButton clear=new JButton("Clear"),button1=new JButton("open"),button2=new JButton("open"),markforreview=new JButton("Mark for review and next"),next=new JButton("Next"),prev= new JButton("Previous");
 	Thread t=null;
 	JTextField exam=new JTextField(20),time=new JTextField(20),quizpap=new JTextField(30),studentdat=new JTextField(30);
 	JButton submit,submitexam=new JButton("Submit"),calc=new JButton("Calculator");
@@ -41,11 +55,11 @@ public class QuizWriterGUI implements ActionListener {
 		this.settingup.setSize(562, 232);
 		this.settingup.isResizable();
 		JPanel setup=new JPanel();
-        JPanel examname=new JPanel(),examtime=new JPanel(),questionfile=new JPanel(),studentpanel=new JPanel();
-        // add action listener to the button to capture user 
-        // response on buttons 
-        button1.addActionListener(this); 
-        button2.addActionListener(this);
+		JPanel examname=new JPanel(),examtime=new JPanel(),questionfile=new JPanel(),studentpanel=new JPanel();
+		// add action listener to the button to capture user 
+		// response on buttons 
+		button1.addActionListener(this); 
+		button2.addActionListener(this);
 		examname.add(new JLabel("Name of the exam: "));
 		examname.add(exam);
 		examtime.add(new JLabel("Exam Time(in min):"));
@@ -62,17 +76,25 @@ public class QuizWriterGUI implements ActionListener {
 		setup.add(studentpanel);
 		submit=new JButton("submit");
 		submit.addActionListener(this);
-//		setup.add(submit);
+		//		setup.add(submit);
 		setup.add(submit);
 		settingup.add(setup);
 		settingup.setResizable(false);
 		settingup.setVisible(true);
-//		setup.setPreferredSize(new Dimension(1000,1000));
-//		setup.setLayout(new BoxLayout(setup,BoxLayout.X_AXIS));
 	}
 	//Exam is exam name
-	public void quizwriter(String examname,String username) {
-		ImageIcon icon = new ImageIcon("C:\\Users\\suhru\\OneDrive\\Desktop\\resized.png");
+	public void quizwriter(String examname,String username, String[] user) {
+		FileInputStream fin;
+		try
+		{
+			fin = new FileInputStream(quizpap.getText());
+			ObjectInputStream ois = new ObjectInputStream(fin);
+			list = (ArrayList)ois.readObject();	
+		}
+		catch(Exception e){}
+		this.examname=examname;
+		this.userdetails=user;
+		ImageIcon icon = new ImageIcon(user[3]);
 		Image scaleImage = icon.getImage().getScaledInstance(60, 70,Image.SCALE_DEFAULT);
 		icon.setImage(scaleImage);
 		//icon=(ImageIcon) scaleImage;
@@ -82,10 +104,16 @@ public class QuizWriterGUI implements ActionListener {
 		JPanel sidepanel= new JPanel();
 		sidepanel.setLayout(new BoxLayout(sidepanel,BoxLayout.Y_AXIS));
 		questionpanel.setLayout(new GridLayout(n,4));
-		for(int i=0;i<200;i++) {
+		for(int i=0;i<list.size();i++) {
 			JButton a=new JButton(String.valueOf(i+1));
-			a.setBackground(Color.white); 
+			a.setText(String.valueOf(i));
+			a.setBackground(Color.white);
+			a.addActionListener(this);
+			responces.add(0);
+			questionbuttons.add(a);
 			questionpanel.add(a);
+			visited.add(false);
+			reviewmark.add(false);
 		}
 		int hrs=timeremaining/3600;
 		int min=hrs%3600;
@@ -95,17 +123,21 @@ public class QuizWriterGUI implements ActionListener {
 		sidepanel.add(questionpanel);
 		JScrollPane pane=new JScrollPane(questionpanel);
 		JScrollPane sidepanelpane = new JScrollPane(sidepanel);
-//		sidepanelpane.setHorizontalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
-				quizwrite.add(sidepanelpane);
+		//		sidepanelpane.setHorizontalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+		quizwrite.add(sidepanelpane);
 		sidepanel.add(timerem);
 		JPanel studentinfopanel=new JPanel();
+		JPanel studentinfopanel1=new JPanel();
 		studentinfopanel.setLayout(new FlowLayout());
 		studentinfopanel.add(new JLabel(icon));
-		studentinfopanel.add(new JLabel("User: "+username));
+		studentinfopanel1.setLayout(new BoxLayout(studentinfopanel1,BoxLayout.Y_AXIS));
+		studentinfopanel1.add(new JLabel("User: "+username));
+		studentinfopanel1.add(new JLabel("Name:"+user[1]));
+		studentinfopanel.add(studentinfopanel1);
 		sidepanel.add(studentinfopanel);
 		sidepanel.add(questionpanel);
 		sidepanel.add(submitexam);
-		sidepanel.setSize(250,1000);
+		//sidepanel.setSize(250,1000);
 		quizwrite.add(sidepanel,BorderLayout.EAST);
 		JPanel Examtitlepanel=new JPanel();
 		JPanel examtitle=new JPanel();
@@ -128,36 +160,47 @@ public class QuizWriterGUI implements ActionListener {
 		//quizwrite.add(pane,BorderLayout.WEST);
 		Examtitlepanel.add(examtitle);
 		Examtitlepanel.add(timerpan);
-//		Examtitlepanel.add(new JLabel("Exam1"));
+		//		Examtitlepanel.add(new JLabel("Exam1"));
 		quizwrite.add(Examtitlepanel,BorderLayout.NORTH);
-		JPanel question=new JPanel();
-		question.setBackground(Color.WHITE);
-		JLabel questionq=new JLabel("wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww");
-		question.setLayout(new BoxLayout(question,BoxLayout.Y_AXIS));
-		questionq.setFont (examn.getFont().deriveFont (26.0f));
-		question.add(questionq);
-		JRadioButton a=new JRadioButton("Option 1");
-		JRadioButton b=new JRadioButton("Option 2");
-		JRadioButton c=new JRadioButton("Option 3");
-		JRadioButton d=new JRadioButton("Option 4");
-		ButtonGroup options=new ButtonGroup();
-		options.add(a);
-		options.add(b);
-		options.add(c);
-		options.add(d);
-		a.setFont(a.getFont().deriveFont(26.0f));
-		b.setFont(b.getFont().deriveFont(26.0f));
-		c.setFont(c.getFont().deriveFont(26.0f));
-		d.setFont(d.getFont().deriveFont(26.0f));
-		question.add(a);
-		question.add(b);
-		question.add(c);
-		question.add(d);
-		examn.setFont (examn.getFont().deriveFont (18.0f));
+		question=new NewJPanel();
+		question.jToggleButton1.setVisible(false);
 		quizwrite.add(question);
 		quizwrite.setVisible(true);
 		JPanel downpanel=new JPanel();
 		Examtitlepanel.setLayout(new BoxLayout(Examtitlepanel,BoxLayout.Y_AXIS));
+		Thread colourcheck= new Thread() {
+			public void run() {
+
+				while(true)
+					for(int i=0;i<list.size();i++) {
+						Color color=Color.WHITE;
+						Color color1=Color.BLACK;
+						if(visited.get(i)) {
+							if(!reviewmark.get(i)) {
+								if(responces.get(i)!=0) {
+									color=color.GREEN;
+								}
+								else {
+									color=color.RED;
+								}
+							}
+							else{
+								if(responces.get(i)!=0) {
+									color=color.PINK;
+									color1=color1.GREEN;
+								}
+								else {
+									color=color.PINK;
+									color1=color1.RED;
+								}
+							}								
+						}
+						questionbuttons.get(i).setBackground(color);
+						questionbuttons.get(i).setForeground(color1);
+					}
+			}
+		};
+		colourcheck.start();
 		t=new Thread() {
 			public void run() {
 				while(true) {
@@ -170,18 +213,18 @@ public class QuizWriterGUI implements ActionListener {
 					int sec=timeremaining%60;
 					timerem.setText("Time remaining:"+twodigits(hrs)+" : "+twodigits(min)+" : "+twodigits(sec));
 					int warningtime=timeremaining/36;
-					if(timeremaining>=0)
+					if(timeremaining<300)
 					{
-						
+
 						if(timeremaining%2==0) {
 							timerem.setForeground(Color.RED);
 							//questionpanel.setVisible(true);
-							}
+						}
 						else {
 							timerem.setForeground(Color.BLACK);
 							//questionpanel.setVisible(false);	
 						}
-						
+
 					}
 					//System.out.println(timeremaining);
 					try {
@@ -201,18 +244,33 @@ public class QuizWriterGUI implements ActionListener {
 		//JPanel _2buttons=new JPanel();
 		//markforreview
 		//_2buttons.add();
-		downpanel.setLayout(new BorderLayout());
+		downpanel.setLayout(new FlowLayout());
 		downpanel.add(prev);
+		downpanel.add(clear);
 		JPanel nextandreview=new JPanel();
 		nextandreview.setLayout(new FlowLayout());
-		nextandreview.add(markforreview);
+		//		nextandreview.add(clear);
+		nextandreview.add(submitexam);
 		nextandreview.add(next);
-		downpanel.add(nextandreview,BorderLayout.EAST);
-		downpanel.add(prev,BorderLayout.WEST);
-		quizwrite.add(downpanel,BorderLayout.SOUTH);
+		nextandreview.add(markforreview);
+		prev.addActionListener(this);
+		next.addActionListener(this);
+		markforreview.addActionListener(this);
+		submitexam.addActionListener(this);
+		clear.addActionListener(this);
+		JPanel downpanel1=new JPanel();
+		downpanel1.setLayout(new BorderLayout());
+		downpanel1.add(nextandreview,BorderLayout.EAST);
+		downpanel1.add(downpanel,BorderLayout.WEST);
+		quizwrite.add(downpanel1,BorderLayout.SOUTH);
 		quizwrite.setExtendedState(JFrame.MAXIMIZED_BOTH); 
 		//quizwrite.setWindowDecorationStyle(JRootPane.NONE);
-
+		Question temp=list.get(index);
+		question.jTextArea1.setText(temp.question);
+		question.jTextArea5.setText(temp.option1);
+		question.jTextArea9.setText(temp.option2);
+		question.jTextArea6.setText(temp.option3);
+		question.jTextArea8.setText(temp.option4);
 	}
 	public String twodigits(int i) {
 		if(i<10)
@@ -220,48 +278,165 @@ public class QuizWriterGUI implements ActionListener {
 		else
 			return i+"";
 	}
-	public void actionPerformed(ActionEvent a) {
+	public void actionPerformed(ActionEvent a){
+		//		System.out.println(responces);
+		JButton button=(JButton)a.getSource();
 		if (a.getSource()==button1) {
 			JFileChooser j = new JFileChooser(FileSystemView.getFileSystemView().getHomeDirectory()); 
-            j.setAcceptAllFileFilterUsed(false); 
-            j.setDialogTitle("Select a .txt file"); 
-            FileNameExtensionFilter restrict = new FileNameExtensionFilter("Only .txt files", "txt"); 
-            j.addChoosableFileFilter(restrict); 
-            int r = j.showSaveDialog(null); 
-            if (r == JFileChooser.APPROVE_OPTION) 
-  
-            { 
-                quizpap.setText(j.getSelectedFile().getAbsolutePath()); 
-            }  
-            else
-                quizpap.setText("the user cancelled the operation"); 
+			j.setAcceptAllFileFilterUsed(false); 
+			j.setDialogTitle("Select a .txt file"); 
+			FileNameExtensionFilter restrict = new FileNameExtensionFilter("Only .txt files", "txt"); 
+			j.addChoosableFileFilter(restrict); 
+			int r = j.showSaveDialog(null); 
+			if (r == JFileChooser.APPROVE_OPTION) 
+
+			{ 
+				quizpap.setText(j.getSelectedFile().getAbsolutePath()); 
+			}  
+			else
+				quizpap.setText("the user cancelled the operation"); 
 		}
 		else if (a.getSource()==button2) {
 			JFileChooser j = new JFileChooser(FileSystemView.getFileSystemView().getHomeDirectory()); 
-            j.setAcceptAllFileFilterUsed(false); 
-            j.setDialogTitle("Select a .csv file"); 
-            FileNameExtensionFilter restrict = new FileNameExtensionFilter("Only .csv files", "csv"); 
-            j.addChoosableFileFilter(restrict); 
-            int r = j.showSaveDialog(null); 
-            if (r == JFileChooser.APPROVE_OPTION) 
-  
-            { 
-                studentdat.setText(j.getSelectedFile().getAbsolutePath()); 
-            } 
-            else
-                studentdat.setText("the user cancelled the operation"); 
+			j.setAcceptAllFileFilterUsed(false); 
+			j.setDialogTitle("Select a .csv file"); 
+			FileNameExtensionFilter restrict = new FileNameExtensionFilter("Only .csv files", "csv"); 
+			j.addChoosableFileFilter(restrict); 
+			int r = j.showSaveDialog(null); 
+			if (r == JFileChooser.APPROVE_OPTION) 
+
+			{ 
+				studentdat.setText(j.getSelectedFile().getAbsolutePath()); 
+			} 
+			else
+				studentdat.setText("the user cancelled the operation"); 
 		}
 
 		else if(a.getSource()==submit) {
 			//this.quizwriter(exam.getText());
-			new StudentLogin(this.studentdat.getText(),this.exam.getText(),this).Login();
-			this.settingup.setVisible(false);
+			while(true) {
+				try{
+					System.out.println(this.studentdat.getText());
+					Integer.parseInt(time.getText());
+					new StudentLogin(this.studentdat.getText(),this.exam.getText(),this).Login();
+					this.settingup.setVisible(false);
+					return;
+				}catch(Exception e) {return;}
+			}
+
 		}
 		else if(a.getSource()== calc) {
 			calgrid.main(null);
 		}
+		else if(a.getSource() == prev) {
+			//4 3 1 2== 1 2 3 4
+			reviewmark.set(index, false);
+			int choosenone=choosenoption();
+			try {
+
+			}catch(Exception e) {
+				return;
+			}
+			try {
+				responces.set(index,choosenone);
+			}catch(Exception e){
+				responces.add(choosenone);
+			}
+			if(index>0) {
+				visited.set(index,true);
+				index--;
+				question.buttonGroup1.clearSelection();
+
+				questionchanger();
+			}
+		}
+		else if(a.getSource()== next) {
+			reviewmark.set(index, false);
+			visited.set(index,true);
+			if(index<list.size()-1) {
+				nextques();
+			}
+		}
+		else if(a.getSource()== markforreview) {
+			reviewmark.set(index, true);
+			visited.set(index,true);
+			if(index<list.size()-1) {
+				nextques();
+			}
+		}
+		else if(a.getSource()== clear)
+		{
+			responces.set(index, 0);
+			question.buttonGroup1.clearSelection();
+		}
+		else if(a.getSource()== submitexam) {
+			responces.set(index,choosenoption());
+			int dialogResult = JOptionPane.showConfirmDialog (null, "Would You like to end the test","Warning",JOptionPane.INFORMATION_MESSAGE);
+			if(dialogResult == JOptionPane.YES_OPTION){
+			  // Saving code here
+				int score=Question.evaluator(list, responces, this.quizpap.getText(), this.userdetails,examname);
+				System.out.println("Score:"+score);
+			}
+			else {
+				return;
+			}
+		}
+		else if(Integer.parseInt(button.getText())<list.size()) {
+			reviewmark.set(index, false);
+			visited.set(index,true);
+			responces.set(index,choosenoption());
+			index=Integer.parseInt(button.getText());
+			questionchanger();
+		}
 	}
 	final static void submitexam(JFrame a) {
 		a.setVisible(false);
+	}
+	public void nextques() {
+		if(index<list.size()) {
+			int choosenone=choosenoption();
+			try {
+				responces.set(index,choosenone);
+			}catch(Exception e){
+				responces.add(index,choosenone);
+			}
+			index++;
+			questionchanger();
+		}
+	}
+	public void questionchanger() {
+		Question temp=list.get(index);
+		question.jTextArea1.setText(temp.question);
+		question.jTextArea5.setText(temp.option1);
+		question.jTextArea9.setText(temp.option2);
+		question.jTextArea6.setText(temp.option3);
+		question.jTextArea8.setText(temp.option4);
+		int choosentemp=responces.get(index);
+		if(choosentemp==1)
+			question.jRadioButton4.setSelected(true);
+		else if(choosentemp==2)
+			question.jRadioButton3.setSelected(true);
+		else if(choosentemp==3)
+			question.jRadioButton1.setSelected(true);
+		else if(choosentemp==4)
+			question.jRadioButton2.setSelected(true);
+		else 
+			question.buttonGroup1.clearSelection();
+	}
+	public int choosenoption() {
+		int choosenone=0;
+		if(question.jRadioButton1.isSelected()) {
+			choosenone=3;
+		}
+		else if(question.jRadioButton2.isSelected()) {
+			choosenone=4;
+		}
+		else if(question.jRadioButton3.isSelected()) {
+			choosenone=2;
+		}
+		else if(question.jRadioButton4.isSelected()) {
+			choosenone=1;
+		}
+		return choosenone;
 	}
 }
