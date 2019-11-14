@@ -32,6 +32,7 @@ public class Question implements Serializable
 			FileWriter fw = new FileWriter(path,true);
 			BufferedWriter writer = new BufferedWriter(fw);
 			StringBuilder sb = new StringBuilder();
+			sb.append(studentinfo[0]+","+studentinfo[1]+","+studentinfo[2]+","+studentinfo[3]+",");
 			for(int i=0;i<a.size();i++)
 			{
 				if(selected.get(i)!=0) {
@@ -44,7 +45,7 @@ public class Question implements Serializable
 					else 
 					{
 						marks-=java.lang.Math.abs(a.get(i).negmark);
-						sb.append(String.valueOf(java.lang.Math.abs(a.get(i).negmark)));
+						sb.append("-"+String.valueOf(java.lang.Math.abs(a.get(i).negmark)));
 						sb.append(",");
 					}
 				}else

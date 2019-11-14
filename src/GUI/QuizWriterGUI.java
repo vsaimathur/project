@@ -27,11 +27,14 @@ import Logic.Question;
  *
  */
 public class QuizWriterGUI implements ActionListener {
+	Thread colourcheck;
 	ArrayList <Question>list=null;
 	ArrayList <JButton>questionbuttons = new ArrayList();
 	ArrayList<Integer>responces=new ArrayList();
 	ArrayList <Boolean>visited=new ArrayList();
 	ArrayList<Boolean> reviewmark=new ArrayList();
+	JLabel posmark= new JLabel("Positive Marks"); 
+	JLabel negmark= new JLabel("Negative Marks");
 	String studentname,image;
 	NewJPanel question=null;
 	JPanel	questionpanel;
@@ -95,7 +98,7 @@ public class QuizWriterGUI implements ActionListener {
 		this.examname=examname;
 		this.userdetails=user;
 		ImageIcon icon = new ImageIcon(user[3]);
-		Image scaleImage = icon.getImage().getScaledInstance(60, 70,Image.SCALE_DEFAULT);
+		Image scaleImage = icon.getImage().getScaledInstance(95, 106,Image.SCALE_DEFAULT);
 		icon.setImage(scaleImage);
 		//icon=(ImageIcon) scaleImage;
 		quizwrite=new JFrame();
@@ -103,10 +106,10 @@ public class QuizWriterGUI implements ActionListener {
 		int n=90;
 		JPanel sidepanel= new JPanel();
 		sidepanel.setLayout(new BoxLayout(sidepanel,BoxLayout.Y_AXIS));
-		questionpanel.setLayout(new GridLayout(n,4));
+		questionpanel.setLayout(new GridLayout(n/3,4));
 		for(int i=0;i<list.size();i++) {
 			JButton a=new JButton(String.valueOf(i+1));
-			a.setText(String.valueOf(i));
+			a.setText(String.valueOf(i+1));
 			a.setBackground(Color.white);
 			a.addActionListener(this);
 			responces.add(0);
@@ -155,6 +158,8 @@ public class QuizWriterGUI implements ActionListener {
 		timerpan.setLayout(new FlowLayout());
 		calc.addActionListener(this);
 		timerpan.add(calc);
+		timerpan.add(this.posmark);
+		timerpan.add(this.negmark);
 		//timerpan.add(timerem);
 		//quizwrite.add(examtitle,BorderLayout.NORTH);
 		//quizwrite.add(pane,BorderLayout.WEST);
@@ -168,10 +173,9 @@ public class QuizWriterGUI implements ActionListener {
 		quizwrite.setVisible(true);
 		JPanel downpanel=new JPanel();
 		Examtitlepanel.setLayout(new BoxLayout(Examtitlepanel,BoxLayout.Y_AXIS));
-		Thread colourcheck= new Thread() {
+		colourcheck= new Thread() {
 			public void run() {
-
-				while(true)
+				while(true) {
 					for(int i=0;i<list.size();i++) {
 						Color color=Color.WHITE;
 						Color color1=Color.BLACK;
@@ -198,6 +202,13 @@ public class QuizWriterGUI implements ActionListener {
 						questionbuttons.get(i).setBackground(color);
 						questionbuttons.get(i).setForeground(color1);
 					}
+					try {
+						Thread.sleep(1);
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
 			}
 		};
 		colourcheck.start();
@@ -317,7 +328,7 @@ public class QuizWriterGUI implements ActionListener {
 			while(true) {
 				try{
 					System.out.println(this.studentdat.getText());
-					Integer.parseInt(time.getText());
+					this.timeremaining=60*Integer.parseInt(time.getText());
 					new StudentLogin(this.studentdat.getText(),this.exam.getText(),this).Login();
 					this.settingup.setVisible(false);
 					return;
@@ -346,7 +357,6 @@ public class QuizWriterGUI implements ActionListener {
 				visited.set(index,true);
 				index--;
 				question.buttonGroup1.clearSelection();
-
 				questionchanger();
 			}
 		}
@@ -373,19 +383,21 @@ public class QuizWriterGUI implements ActionListener {
 			responces.set(index,choosenoption());
 			int dialogResult = JOptionPane.showConfirmDialog (null, "Would You like to end the test","Warning",JOptionPane.INFORMATION_MESSAGE);
 			if(dialogResult == JOptionPane.YES_OPTION){
-			  // Saving code here
+				// Saving code here
 				int score=Question.evaluator(list, responces, this.quizpap.getText(), this.userdetails,examname);
 				System.out.println("Score:"+score);
+				this.quizwrite.setVisible(false);
+				new FinalScore(examname,score);
 			}
 			else {
 				return;
 			}
 		}
-		else if(Integer.parseInt(button.getText())<list.size()) {
+		else if(Integer.parseInt(button.getText())-1<list.size()) {
 			reviewmark.set(index, false);
 			visited.set(index,true);
 			responces.set(index,choosenoption());
-			index=Integer.parseInt(button.getText());
+			index=Integer.parseInt(button.getText())-1;
 			questionchanger();
 		}
 	}
@@ -411,6 +423,8 @@ public class QuizWriterGUI implements ActionListener {
 		question.jTextArea9.setText(temp.option2);
 		question.jTextArea6.setText(temp.option3);
 		question.jTextArea8.setText(temp.option4);
+		this.posmark.setText("Marks for correct answer: "+temp.posmark);
+		this.negmark.setText("Marks for Wrong answer: -"+temp.negmark);
 		int choosentemp=responces.get(index);
 		if(choosentemp==1)
 			question.jRadioButton4.setSelected(true);
